@@ -118,9 +118,7 @@
         @endif
 
         <!-- Mensaje de bloqueo -->
-        <div class="blocked-message" id="blocked-message" style="display: none;">
-            Tu cuenta está bloqueada. Contacta al administrador.
-        </div>
+        <div class="blocked-message" id="blocked-message" style="display: none;"></div>
 
         <form method="POST" action="{{ route('login') }}" id="login-form">
             @csrf
@@ -158,6 +156,7 @@
             const emailInput = document.getElementById('email');
             const loginButton = document.getElementById('login-button');
             const blockedMessage = document.getElementById('blocked-message');
+            const errorMessage = document.getElementById('error-message');
 
             // Función para verificar el estado del usuario
             function checkUserStatus(email) {
@@ -175,14 +174,40 @@
                     if (data.blocked) {
                         blockedMessage.style.display = 'block';
                         loginButton.disabled = true;
+                        if (data.remaining_time) {
+                            blockedMessage.textContent = data.message;
+                            startCountdown(data.remaining_time);
+                        } else {
+                            blockedMessage.textContent = 'Tu cuenta está bloqueada. Contacta al administrador.';
+                        }
                     } else {
                         blockedMessage.style.display = 'none';
                         loginButton.disabled = false;
+                        if (data.remaining_attempts < 3) {
+                            errorMessage.style.display = 'block';
+                            errorMessage.textContent = `Te quedan ${data.remaining_attempts} intentos.`;
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('Error al verificar el estado del usuario:', error);
                 });
+            }
+
+            // Contador para el tiempo de bloqueo
+            function startCountdown(seconds) {
+                let timeLeft = seconds;
+                const interval = setInterval(() => {
+                    timeLeft--;
+                    blockedMessage.textContent = `Cuenta bloqueada por 3 minutos. Tiempo restante: ${timeLeft} segundos.`;
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        blockedMessage.style.display = 'none';
+                        loginButton.disabled = false;
+                        errorMessage.style.display = 'none';
+                        checkUserStatus(emailInput.value); // Re-verificar estado
+                    }
+                }, 1000);
             }
 
             // Verificar el estado cuando se escribe el email
