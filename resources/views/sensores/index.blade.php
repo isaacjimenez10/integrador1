@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Sensores</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -183,6 +182,24 @@
 
         #sensorChart { width: 100% !important; height: 500px !important; }
 
+        .error-message {
+            color: #e74c3c;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success-message {
+            color: #28a745;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             .header-actions { flex-direction: column; align-items: stretch; }
             .search-form form { flex-direction: column; }
@@ -193,16 +210,26 @@
     </style>
 </head>
 <body>
-    <a href="{{ url('admin/dashboard') }}" class="back-button">
+    <a href="{{ route('admin.dashboard') }}" class="back-button">
         <i class="fas fa-arrow-left"></i> Regresar
     </a>
 
     <div class="container">
         <h1>Lista de Sensores</h1>
 
+        <!-- Mostrar mensaje de error si existe -->
+        @if (isset($error))
+            <div class="error-message">{{ $error }}</div>
+        @endif
+
+        <!-- Mostrar mensaje de éxito si existe -->
+        @if (session('success'))
+            <div class="success-message">{{ session('success') }}</div>
+        @endif
+
         <div class="header-actions">
             <div class="search-form">
-                <form method="GET" action="{{ url('sensores') }}" id="searchForm">
+                <form method="GET" action="{{ route('sensores.index') }}" id="searchForm">
                     <input type="text" name="search" placeholder="Buscar sensores..." value="{{ request('search') }}">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Buscar
@@ -210,12 +237,12 @@
                 </form>
             </div>
             <div>
-                <a href="{{ url('sensores/create') }}" class="btn btn-primary">
+                <a href="{{ route('sensores.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Nuevo Sensor
                 </a>
-                <button id="exportExcel" class="btn btn-primary">
-                    <i class="fas fa-file-excel"></i> Exportar Excel
-                </button>
+                <a href="{{ url('sensores/export') }}" class="btn btn-primary" id="exportExcel">
+    <i class="fas fa-file-excel"></i> Exportar Excel
+</a>
             </div>
         </div>
 
@@ -231,20 +258,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($sensores as $sensor)
+                    @forelse($sensores as $sensor)
                     <tr>
-                        <td>{{ $sensor->id }}</td>
-                        <td>{{ $sensor->nombre }}</td>
-                        <td>{{ $sensor->tipo }}</td>
-                        <td>{{ $sensor->ubicacion }}</td>
+                        <td>{{ $sensor['id'] }}</td>
+                        <td>{{ $sensor['nombre'] ?? 'N/A' }}</td>
+                        <td>{{ $sensor['tipo'] ?? 'N/A' }}</td>
+                        <td>{{ $sensor['ubicacion'] ?? 'N/A' }}</td>
                         <td class="actions-btns">
-                            <a href="{{ url('sensores/'.$sensor->id) }}" class="btn btn-view">
+                            <a href="{{ route('sensores.show', $sensor['id']) }}" class="btn btn-view">
                                 <i class="fas fa-eye"></i> Ver
                             </a>
-                            <a href="{{ url('sensores/'.$sensor->id.'/edit') }}" class="btn btn-edit">
+                            <a href="{{ route('sensores.edit', $sensor['id']) }}" class="btn btn-edit">
                                 <i class="fas fa-edit"></i> Editar
                             </a>
-                            <form action="{{ url('sensores/'.$sensor->id) }}" method="POST" class="delete-form">
+                            <form action="{{ route('sensores.destroy', $sensor['id']) }}" method="POST" class="delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-delete" onclick="return confirm('¿Estás seguro?')">
@@ -253,7 +280,11 @@
                             </form>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="5">No se encontraron sensores.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -281,7 +312,9 @@
 
             tableRows.forEach(row => {
                 const type = row.cells[2].textContent; // Columna "Tipo"
-                sensorTypes[type] = (sensorTypes[type] || 0) + 1;
+                if (type !== 'N/A') { // Ignorar valores no definidos
+                    sensorTypes[type] = (sensorTypes[type] || 0) + 1;
+                }
             });
 
             const labels = Object.keys(sensorTypes);
@@ -311,7 +344,7 @@
                     },
                     scales: {
                         x: { ticks: { color: '#ffffff' } },
-                        y: { beginAtZero: true, ticks: { color: '#ffffff' } }
+                        y: { beginAtZero: true, ticks: { color: '#ffffff', stepSize: 1 } }
                     }
                 }
             });
@@ -348,6 +381,9 @@
 
                 // Reasignar eventos a los nuevos enlaces de paginación
                 attachPaginationEvents();
+
+                // Reasignar eventos a los nuevos formularios de eliminación
+                attachDeleteEvents();
             })
             .catch(error => console.error('Error al actualizar la tabla:', error));
         }
@@ -360,27 +396,57 @@
             });
         }
 
+        // Función para manejar los clics en los enlaces de paginación
         function handlePaginationClick(e) {
             e.preventDefault();
             const url = e.currentTarget.href;
             handleTableUpdate(url);
         }
 
+        // Función para asignar eventos a los formularios de eliminación
+        function attachDeleteEvents() {
+            document.querySelectorAll('.delete-form').forEach(form => {
+                form.removeEventListener('submit', handleDelete); // Evitar duplicados
+                form.addEventListener('submit', handleDelete);
+            });
+        }
+
+        // Función para manejar la eliminación con AJAX
+        function handleDelete(e) {
+            e.preventDefault();
+            if (!confirm('¿Estás seguro?')) return;
+
+            const form = e.currentTarget;
+            const url = form.action;
+
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    // Actualizar la tabla después de eliminar
+                    const searchQuery = document.querySelector('input[name="search"]').value;
+                    const url = `${document.getElementById('searchForm').action}?search=${encodeURIComponent(searchQuery)}`;
+                    handleTableUpdate(url);
+                } else {
+                    alert('Error al eliminar el sensor: ' + (data.error || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('Error al eliminar:', error);
+                alert('Error al eliminar el sensor');
+            });
+        }
+
         // Inicialización
         document.addEventListener('DOMContentLoaded', () => {
             // Gráfica inicial
             updateChart();
-
-            // Exportar a Excel
-            document.getElementById('exportExcel').addEventListener('click', () => {
-                const table = document.getElementById('sensorsTable');
-                if (table) {
-                    const ws = XLSX.utils.table_to_sheet(table);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, 'Sensores');
-                    XLSX.writeFile(wb, 'sensores.xlsx');
-                }
-            });
 
             // Búsqueda
             const searchForm = document.getElementById('searchForm');
@@ -391,8 +457,9 @@
                 handleTableUpdate(url);
             });
 
-            // Eventos iniciales de paginación
+            // Eventos iniciales de paginación y eliminación
             attachPaginationEvents();
+            attachDeleteEvents();
         });
     </script>
 </body>

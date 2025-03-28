@@ -126,7 +126,7 @@
         <h1>Crear Nueva Configuración</h1>
 
         <!-- Botón para regresar a la lista de configuraciones -->
-       
+        <a href="{{ route('configuracion.index') }}" class="btn-back">Volver a la lista</a>
 
         <!-- Formulario para crear una configuración -->
         <form action="{{ route('configuracion.store') }}" method="POST">
@@ -137,8 +137,8 @@
             <select name="sensor_id" id="sensor_id">
                 <option value="">Selecciona un sensor</option>
                 @foreach($sensores as $sensor)
-                    <option value="{{ $sensor->id }}" {{ old('sensor_id') == $sensor->id ? 'selected' : '' }}>
-                        {{ $sensor->nombre }}
+                    <option value="{{ $sensor['id'] }}" {{ old('sensor_id') == $sensor['id'] ? 'selected' : '' }}>
+                        {{ $sensor['nombre'] }}
                     </option>
                 @endforeach
             </select>
@@ -162,7 +162,6 @@
 
             <!-- Botón para enviar el formulario -->
             <input type="submit" value="Crear Configuración">
-            <a href="{{ route('configuracion.index') }}" class="btn-back">Volver a la lista</a>
         </form>
     </div>
 </body>

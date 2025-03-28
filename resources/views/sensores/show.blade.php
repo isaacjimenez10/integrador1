@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle del Sensor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        :root {
+            --primary-color: #28a745;
+            --secondary-color: #218838;
+            --text-color: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+        }
 
-        /* Fondo con imagen */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Poppins', sans-serif;
-            background: url('/img/n.jpg') no-repeat center center/cover;
+            background: url('{{ asset('img/n.jpg') }}') no-repeat center center/cover;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -46,21 +53,34 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @keyframes scaleUp {
-            from {
-                transform: scale(0.8);
-            }
-            to {
-                transform: scale(1);
-            }
+            from { transform: scale(0.8); }
+            to { transform: scale(1); }
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            z-index: 3;
+        }
+
+        .back-button:hover {
+            background: var(--secondary-color);
+            transform: translateX(-5px);
         }
 
         h1 {
@@ -70,68 +90,16 @@
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
         }
 
-        /* Diseño del formulario */
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        label {
+        p {
             color: #ffffff;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: left;
-            display: block;
-        }
-
-        /* Estilos avanzados para los inputs y select */
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #28a745;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            transition: 0.3s ease-in-out;
-        }
-
-        input:focus, select:focus {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
-        }
-
-        /* Botón con animación al hacer hover */
-        button {
-            margin-top: 15px;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
             font-size: 16px;
-            font-weight: bold;
-            background: #28a745;
-            color: white;
-            transition: all 0.3s ease-in-out;
-            animation: pulse 2s infinite;
+            margin: 10px 0;
+            text-align: left;
         }
 
-        button:hover {
-            background: #218838;
-            transform: scale(1.1);
-            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.4);
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(40, 167, 69, 0.8);
-            }
-            100% {
-                box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-            }
+        p strong {
+            color: #28a745;
+            font-weight: 600;
         }
 
         /* Botón de volver */
@@ -150,19 +118,36 @@
             background: rgba(40, 167, 69, 1);
             transform: scale(1.05);
         }
+
+        .error-message {
+            color: #e74c3c;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+    <a href="{{ route('admin.dashboard') }}" class="back-button">
+        <i class="fas fa-arrow-left"></i> Regresar
+    </a>
 
     <div class="container">
         <h1>🌿 Detalle del Sensor</h1>
-        <p><strong>ID:</strong> {{ $sensor->id }}</p>
-        <p><strong>Nombre:</strong> {{ $sensor->nombre }}</p>
-        <p><strong>Tipo:</strong> {{ $sensor->tipo }}</p>
-        <p><strong>Ubicación:</strong> {{ $sensor->ubicacion }}</p>
 
-        <a href="{{ url('sensores') }}" class="link">🔙 Volver a la lista</a>
+        <!-- Mostrar mensaje de error si existe -->
+        @if (session('error'))
+            <div class="error-message">{{ session('error') }}</div>
+        @endif
+
+        <p><strong>ID:</strong> {{ $sensor['id'] ?? 'N/A' }}</p>
+        <p><strong>Nombre:</strong> {{ $sensor['nombre'] ?? 'N/A' }}</p>
+        <p><strong>Tipo:</strong> {{ $sensor['tipo'] ?? 'N/A' }}</p>
+        <p><strong>Ubicación:</strong> {{ $sensor['ubicacion'] ?? 'N/A' }}</p>
+
+        <a href="{{ route('sensores.index') }}" class="link">🔙 Volver a la lista</a>
     </div>
-
 </body>
 </html>

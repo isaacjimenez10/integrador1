@@ -150,17 +150,30 @@
             background: rgba(40, 167, 69, 1);
             transform: scale(1.05);
         }
+
+        /* Estilo para los párrafos */
+        p {
+            color: #ffffff;
+            font-size: 14px;
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        p strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Detalle de la Lectura</h1>
-        <p><strong>ID:</strong> {{ $lectura->id }}</p>
-        <p><strong>Sensor:</strong> {{ $lectura->sensor->nombre }}</p>
-        <p><strong>Valor:</strong> {{ $lectura->valor }}</p>
-        <p><strong>Unidad:</strong> {{ $lectura->unidad }}</p>
-        <p><strong>Fecha y Hora:</strong> {{ $lectura->fecha_hora }}</p>
-        <a href="{{ url('lecturas') }}" class="link">Volver a la lista</a>
+        <p><strong>ID:</strong> {{ $lectura['id'] ?? 'N/A' }}</p>
+        <p><strong>Sensor:</strong> {{ isset($lectura['sensor']) && is_array($lectura['sensor']) ? ($lectura['sensor']['nombre'] ?? 'N/A') : 'N/A' }}</p>
+        <p><strong>Valor:</strong> {{ $lectura['valor'] ?? 'N/A' }}</p>
+        <p><strong>Unidad:</strong> {{ $lectura['unidad'] ?? 'N/A' }}</p>
+        <p><strong>Fecha y Hora:</strong> {{ $lectura['fecha_hora'] ? \Carbon\Carbon::parse($lectura['fecha_hora'])->format('d/m/Y H:i') : 'N/A' }}</p>
+        <a href="{{ route('lecturas.index') }}" class="link">Volver a la lista</a>
     </div>
 </body>
 </html>

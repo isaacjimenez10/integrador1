@@ -7,19 +7,18 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-        /* Fondo con imagen */
         body {
             font-family: 'Poppins', sans-serif;
-            background: url('/img/lec.jpg') no-repeat center center/cover;
+            background: url('{{ asset('img/lec.jpg') }}') no-repeat center center/cover;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            flex-direction: column;
             position: relative;
         }
 
-        /* Capa translúcida para mejorar la visibilidad */
         body::before {
             content: "";
             position: absolute;
@@ -31,151 +30,171 @@
             z-index: 1;
         }
 
-        /* Contenedor con animación de entrada */
         .container {
             position: relative;
             z-index: 2;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(12px);
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
-            width: 350px;
+            width: 90%;
+            max-width: 600px;
             text-align: center;
             animation: fadeIn 1s ease-in-out, scaleUp 0.8s ease-in-out;
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @keyframes scaleUp {
-            from {
-                transform: scale(0.8);
-            }
-            to {
-                transform: scale(1);
-            }
+            from { transform: scale(0.8); }
+            to { transform: scale(1); }
         }
 
         h1 {
             color: #ffffff;
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 20px;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
         }
 
-        /* Diseño del formulario */
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 12px;
+            text-decoration: none;
+            background: #17a2b8;
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover {
+            background: #138496;
+            transform: scale(1.05);
+        }
+
         form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         label {
-            color: #ffffff;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: left;
+            font-size: 16px;
+            color: #333;
             display: block;
+            margin-bottom: 8px;
         }
 
-        /* Estilos avanzados para los inputs y select */
         input, select {
             width: 100%;
             padding: 10px;
-            border: 2px solid #28a745;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            transition: 0.3s ease-in-out;
-        }
-
-        input:focus, select:focus {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
-        }
-
-        /* Botón con animación al hacer hover */
-        button {
-            margin-top: 15px;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
             font-size: 16px;
-            font-weight: bold;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        input[type="submit"] {
             background: #28a745;
             color: white;
-            transition: all 0.3s ease-in-out;
-            animation: pulse 2s infinite;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
         }
 
-        button:hover {
+        input[type="submit"]:hover {
             background: #218838;
-            transform: scale(1.1);
-            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.4);
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(40, 167, 69, 0.8);
-            }
-            100% {
-                box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-            }
-        }
-
-        /* Botón de volver */
-        .link {
-            display: block;
-            margin-top: 15px;
-            padding: 10px;
-            text-decoration: none;
-            background: rgba(40, 167, 69, 0.9);
-            color: white;
-            border-radius: 8px;
-            transition: all 0.3s ease-in-out;
-        }
-
-        .link:hover {
-            background: rgba(40, 167, 69, 1);
             transform: scale(1.05);
+        }
+
+        .error-message, .success-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .error-message {
+            background: #e74c3c;
+        }
+
+        .success-message {
+            background: #28a745;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Crear Lectura</h1>
+
+        <!-- Botón para regresar a la lista de lecturas -->
+        <a href="{{ route('lecturas.index') }}" class="btn-back">Volver a la lista</a>
+
+        <!-- Mostrar mensajes de error o éxito -->
+        @if (session('error'))
+            <div class="error-message">{{ session('error') }}</div>
+        @endif
+        @if (session('success'))
+            <div class="success-message">{{ session('success') }}</div>
+        @endif
+
+        <!-- Formulario para crear una lectura -->
         <form action="{{ route('lecturas.store') }}" method="POST">
-    @csrf
-    <label for="sensor_id">Sensor:</label>
-    <select id="sensor_id" name="sensor_id">
-        @foreach($sensores as $sensor)
-            <option value="{{ $sensor->id }}">{{ $sensor->nombre }}</option>
-        @endforeach
-    </select><br>
+            @csrf
 
-    <label for="valor">Valor:</label>
-    <input type="number" step="any" id="valor" name="valor" required><br>
-    
-    <label for="unidad">Unidad:</label>
-    <input type="text" id="unidad" name="unidad" required><br>
+            <!-- Selector de Sensor -->
+            <label for="sensor_id">Seleccionar Sensor</label>
+            <select name="sensor_id" id="sensor_id">
+                <option value="">Selecciona un sensor</option>
+                @foreach($sensores as $sensor)
+                    <option value="{{ $sensor['id'] }}" {{ old('sensor_id') == $sensor['id'] ? 'selected' : '' }}>
+                        {{ $sensor['nombre'] }}
+                    </option>
+                @endforeach
+            </select>
+            @error('sensor_id')
+                <div class="error">{{ $message }}</div>
+            @enderror
 
-    <label for="fecha_hora">Fecha y Hora:</label>
-    <input type="datetime-local" id="fecha_hora" name="fecha_hora" required><br>
+            <!-- Campo para el valor -->
+            <label for="valor">Valor</label>
+            <input type="number" name="valor" id="valor" value="{{ old('valor') }}" step="any">
+            @error('valor')
+                <div class="error">{{ $message }}</div>
+            @enderror
 
-    <button type="submit">Crear Lectura</button>
-</form>
-        <a href="{{ url('lecturas') }}" class="link">Volver a la lista</a>
+            <!-- Campo para la unidad -->
+            <label for="unidad">Unidad</label>
+            <input type="text" name="unidad" id="unidad" value="{{ old('unidad') }}">
+            @error('unidad')
+                <div class="error">{{ $message }}</div>
+            @enderror
+
+            <!-- Campo para la fecha y hora -->
+            <label for="fecha_hora">Fecha y Hora</label>
+            <input type="datetime-local" name="fecha_hora" id="fecha_hora" value="{{ old('fecha_hora') }}">
+            @error('fecha_hora')
+                <div class="error">{{ $message }}</div>
+            @enderror
+
+            <!-- Botón para enviar el formulario -->
+            <input type="submit" value="Crear Lectura">
+        </form>
     </div>
 </body>
 </html>

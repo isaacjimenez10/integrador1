@@ -125,26 +125,61 @@
             background: rgba(40, 167, 69, 1);
             transform: scale(1.05);
         }
+
+        /* Estilos para mensajes de error */
+        .error {
+            color: #e74c3c;
+            font-size: 12px;
+            text-align: left;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Editar Configuración</h1>
-        <form action="{{ route('configuracion.update', $configuracion->id) }}" method="POST">
+
+        <!-- Mostrar mensaje de error si existe -->
+        @if (session('error'))
+            <div class="error-message">{{ session('error') }}</div>
+        @endif
+
+        <form action="{{ route('configuracion.update', $configuracion['id']) }}" method="POST">
             @csrf
             @method('PUT')
             <label for="sensor_id">Sensor:</label>
             <select name="sensor_id" id="sensor_id" required>
                 @foreach ($sensores as $sensor)
-                    <option value="{{ $sensor->id }}" {{ $configuracion->sensor_id == $sensor->id ? 'selected' : '' }}>{{ $sensor->nombre }}</option>
+                    <option value="{{ $sensor['id'] }}" {{ $configuracion['sensor_id'] == $sensor['id'] ? 'selected' : '' }}>
+                        {{ $sensor['nombre'] }}
+                    </option>
                 @endforeach
             </select>
+            @error('sensor_id')
+                <div class="error">{{ $message }}</div>
+            @enderror
 
             <label for="minimo">Mínimo:</label>
-            <input type="number" name="minimo" id="minimo" value="{{ $configuracion->minimo }}" required>
+            <input type="number" name="minimo" id="minimo" value="{{ $configuracion['minimo'] ?? '' }}" required step="0.01">
+            @error('minimo')
+                <div class="error">{{ $message }}</div>
+            @enderror
 
             <label for="maximo">Máximo:</label>
-            <input type="number" name="maximo" id="maximo" value="{{ $configuracion->maximo }}" required>
+            <input type="number" name="maximo" id="maximo" value="{{ $configuracion['maximo'] ?? '' }}" required step="0.01">
+            @error('maximo')
+                <div class="error">{{ $message }}</div>
+            @enderror
 
             <button type="submit">Actualizar</button>
         </form>

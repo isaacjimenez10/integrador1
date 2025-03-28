@@ -57,6 +57,10 @@
                         <i class="fas fa-chart-line mr-2 text-gray-500"></i> 
                         Lecturas
                     </a>
+                    <a href="{{ url('/sensor-data') }}" class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md transition duration-300">
+                        <i class="fas fa-microchip mr-2 text-gray-500"></i> 
+                        SensoresData
+                    </a>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="relative dropdown">
@@ -89,6 +93,9 @@
                     </a>
                     <a href="{{ url('/lecturas') }}" class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md transition duration-300">
                         <i class="fas fa-chart-line mr-2 text-gray-500"></i> Lecturas
+                    </a>
+                    <a href="{{ url('/sensor-data') }}" class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md transition duration-300">
+                        <i class="fas fa-microchip mr-2 text-gray-500"></i> SensoresData
                     </a>
                 </div>
             </div>

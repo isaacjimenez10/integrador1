@@ -91,10 +91,10 @@
 <body>
     <div class="container">
         <h1>Detalle de Configuración</h1>
-        <p><strong>ID:</strong> {{ $configuracion->id }}</p>
-        <p><strong>Sensor:</strong> {{ $configuracion->sensor->nombre }}</p>
-        <p><strong>Mínimo:</strong> {{ $configuracion->minimo }}</p>
-        <p><strong>Máximo:</strong> {{ $configuracion->maximo }}</p>
+        <p><strong>ID:</strong> {{ $configuracion['id'] }}</p>
+        <p><strong>Sensor:</strong> {{ $configuracion['sensor']['nombre'] ?? 'Sin sensor' }}</p>
+        <p><strong>Mínimo:</strong> {{ $configuracion['minimo'] ?? 'N/A' }}</p>
+        <p><strong>Máximo:</strong> {{ $configuracion['maximo'] ?? 'N/A' }}</p>
         <a class="link" href="{{ route('configuracion.index') }}">Volver al Listado</a>
     </div>
 </body>

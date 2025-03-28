@@ -12,6 +12,21 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
+// routes/web.php
+
+use App\Http\Controllers\SensorDataController;
+
+Route::prefix('sensordata')->group(function () {
+    Route::get('/', [SensorDataController::class, 'index'])->name('sensor-data.index'); // GET /sensordata (vista)
+    Route::post('/', [SensorDataController::class, 'store'])->name('sensor-data.store'); // POST /sensordata (formulario)
+    Route::get('/data', [SensorDataController::class, 'getData'])->name('sensor-data.data'); // GET /sensordata/data (para gráficas)
+});
+
+Route::get('/sensor-data', [SensorDataController::class, 'index'])
+    ->name('sensor-data.index');
+Route::post('/sensor-data', [SensorDataController::class, 'store'])
+    ->name('sensor-data.store');
+    
 // Rutas públicas
 Route::get('/', function () {
     return view('welcome');
@@ -79,7 +94,8 @@ Route::post('sensores', [SensorController::class, 'store'])->name('sensores.stor
 Route::get('sensores/{id}', [SensorController::class, 'show'])->name('sensores.show'); 
 Route::get('sensores/{id}/edit', [SensorController::class, 'edit'])->name('sensores.edit'); 
 Route::put('sensores/{id}', [SensorController::class, 'update'])->name('sensores.update'); 
-Route::delete('sensores/{id}', [SensorController::class, 'destroy'])->name('sensores.destroy'); 
+Route::delete('sensores/{id}', [SensorController::class, 'destroy'])->name('sensores.destroy');
+Route::get('sensores/export', [SensorController::class, 'export'])->name('sensores.export'); 
 
 // Rutas CRUD completas para Lectura
 Route::get('lecturas', [LecturaController::class, 'index'])->name('lecturas.index');
@@ -89,6 +105,7 @@ Route::get('lecturas/{id}', [LecturaController::class, 'show'])->name('lecturas.
 Route::get('lecturas/{id}/edit', [LecturaController::class, 'edit'])->name('lecturas.edit'); 
 Route::put('lecturas/{id}', [LecturaController::class, 'update'])->name('lecturas.update'); 
 Route::delete('lecturas/{id}', [LecturaController::class, 'destroy'])->name('lecturas.destroy'); 
+Route::get('lecturas/export', [LecturaController::class, 'export'])->name('lecturas.export');
 
 // Rutas CRUD completas para Configuración
 Route::get('configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');

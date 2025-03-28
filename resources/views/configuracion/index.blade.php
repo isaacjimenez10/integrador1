@@ -294,29 +294,29 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($configuraciones as $configuracion)
-                    <tr>
-                        <td>{{ $configuracion->id }}</td>
-                        <td>{{ optional($configuracion->sensor)->nombre ?? 'Sin sensor' }}</td>
-                        <td>{{ $configuracion->minimo }}</td>
-                        <td>{{ $configuracion->maximo }}</td>
-                        <td class="actions-btns">
-                            <a href="{{ route('configuracion.show', $configuracion->id) }}" class="btn btn-view">
-                                <i class="fas fa-eye"></i> Ver
-                            </a>
-                            <a href="{{ route('configuracion.edit', $configuracion->id) }}" class="btn btn-edit">
-                                <i class="fas fa-edit"></i> Editar
-                            </a>
-                            <form action="{{ route('configuracion.destroy', $configuracion->id) }}" method="POST" class="delete-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-delete" onclick="return confirm('¿Estás seguro?')">
-                                    <i class="fas fa-trash"></i> Eliminar
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
+                @foreach($configuraciones as $configuracion)
+    <tr>
+        <td>{{ $configuracion['id'] }}</td>
+        <td>{{ $configuracion['sensor']['nombre'] ?? 'Sin sensor' }}</td>
+        <td>{{ $configuracion['minimo'] ?? 'N/A' }}</td>
+        <td>{{ $configuracion['maximo'] ?? 'N/A' }}</td>
+        <td class="actions-btns">
+            <a href="{{ route('configuracion.show', $configuracion['id']) }}" class="btn btn-view">
+                <i class="fas fa-eye"></i> Ver
+            </a>
+            <a href="{{ route('configuracion.edit', $configuracion['id']) }}" class="btn btn-edit">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <form action="{{ route('configuracion.destroy', $configuracion['id']) }}" method="POST" class="delete-form">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-delete" onclick="return confirm('¿Estás seguro?')">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </form>
+        </td>
+    </tr>
+@endforeach
                 </tbody>
             </table>
         </div>
