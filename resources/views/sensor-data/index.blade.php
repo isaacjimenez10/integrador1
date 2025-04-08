@@ -6,6 +6,7 @@
     <title>Monitor de SensorData</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -15,13 +16,14 @@
             --shadow-color: rgba(0, 0, 0, 0.4);
             --error-color: #e74c3c;
             --success-color: #28a745;
-            --temp-color: #ff3333; /* Color más brillante para temperatura */
-            --humidity-color: #3366ff; /* Color más brillante para humedad del aire */
-            --soil-color: #00cc66; /* Color más brillante para humedad del suelo */
-            --grid-color: rgba(255, 255, 255, 0.3); /* Cuadrícula más visible */
-            --label-color: #f0f0f0; /* Etiquetas más claras */
+            --temp-color: #ff3333;
+            --humidity-color: #3366ff;
+            --soil-color: #00cc66;
+            --grid-color: rgba(255, 255, 255, 0.3);
+            --label-color: #f0f0f0;
         }
 
+        /* Resto de los estilos sin cambios */
         * {
             margin: 0;
             padding: 0;
@@ -226,33 +228,32 @@
             max-width: 1000px;
             margin: 2rem auto;
             padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.3); /* Fondo más claro para mejor contraste */
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 15px;
-            backdrop-filter: blur(10px); /* Reducimos el desenfoque para mayor claridad */
+            backdrop-filter: blur(10px);
             box-shadow: 0 4px 15px var(--shadow-color);
             transition: transform 0.3s ease;
-            box-shadow: 0 4px 15px var(--shadow-color);
-    transition: all 0.3s ease; /* Transición suave para todos los cambios */
-    position: relative; /* Necesario para el posicionamiento absoluto al agrandarse */
-    z-index: 2;
+            position: relative;
+            z-index: 2;
         }
-        .graph-container.fullscreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    max-width: none;
-    margin: 0;
-    padding: 2rem;
-    z-index: 1000; /* Asegura que esté por encima de todo */
-    background: rgba(255, 255, 255, 0.5); /* Fondo más claro cuando se agranda */
-    transform: scale(1); /* Evita el pequeño movimiento del hover normal */
-}
 
-.graph-container.fullscreen canvas {
-    height: 80vh !important; /* Ajusta la altura del canvas al tamaño de la pantalla */
-}
+        .graph-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            margin: 0;
+            padding: 2rem;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1);
+        }
+
+        .graph-container.fullscreen canvas {
+            height: 80vh !important;
+        }
 
         .graph-container:hover {
             transform: translateY(-5px);
@@ -296,8 +297,10 @@
                 height: 250px !important;
             }
         }
+
     </style>
 </head>
+
 <body>
     <a href="{{ route('admin.dashboard') }}" class="back-button">
         <i class="fas fa-arrow-left"></i> Regresar
@@ -330,12 +333,17 @@
 
         <div class="header-actions">
             <div class="search-form">
-                
             </div>
             <div>
                 <a href="#" class="btn btn-primary" id="addDataBtn">
                     <i class="fas fa-plus"></i> Nueva Lectura
                 </a>
+                <button class="btn btn-primary" id="exportPageExcelBtn">
+                    <i class="fas fa-file-excel"></i> Exportar Página
+                </button>
+                <button class="btn btn-primary" id="exportAllExcelBtn">
+                    <i class="fas fa-file-excel"></i> Exportar Todo
+                </button>
             </div>
         </div>
 
@@ -443,7 +451,7 @@
             }
         },
         animation: {
-            duration: 1000, // Animación más rápida y fluida
+            duration: 1000,
             easing: 'easeInOutQuad'
         },
         interaction: {
@@ -524,7 +532,7 @@
     // Variables de control
     let isPaused = false;
     let updateInterval;
-    const maxDataPoints = 50; // Limitar a 50 puntos para mejor rendimiento
+    const maxDataPoints = 50;
 
     // Función para actualizar gráficos
     function updateCharts() {
@@ -538,7 +546,6 @@
                 const humidities = data.slice(-maxDataPoints).map(d => d.humidity);
                 const soilMoistures = data.slice(-maxDataPoints).map(d => d.soilMoisture);
 
-                // Actualizar datos de los gráficos
                 tempChart.data.labels = timestamps;
                 tempChart.data.datasets[0].data = temperatures;
                 humidityChart.data.labels = timestamps;
@@ -546,7 +553,6 @@
                 soilChart.data.labels = timestamps;
                 soilChart.data.datasets[0].data = soilMoistures;
 
-                // Actualizar gráficos con animación suave
                 tempChart.update('show');
                 humidityChart.update('show');
                 soilChart.update('show');
@@ -554,17 +560,97 @@
             .catch(error => console.error('Error al obtener datos:', error));
     }
 
+    // Función para exportar página actual
+    function exportPageToExcel() {
+        const table = document.getElementById('sensorDataTable');
+        const rows = table.querySelectorAll('tr');
+        const data = [['ID', 'Temperatura (°C)', 'Humedad Aire (%)', 'Humedad Suelo (%)', 'Fecha']];
+        
+        rows.forEach((row, index) => {
+            if (index > 0) { // Saltar encabezado
+                const rowData = [];
+                row.querySelectorAll('td').forEach(cell => {
+                    rowData.push(cell.textContent);
+                });
+                data.push(rowData);
+            }
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        
+        ws['!cols'] = [
+            { wch: 10 }, // ID
+            { wch: 20 }, // Temperatura (°C)
+            { wch: 20 }, // Humedad Aire (%)
+            { wch: 20 }, // Humedad Suelo (%)
+            { wch: 30 }  // Fecha
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, "SensorData_Pagina");
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        XLSX.writeFile(wb, `SensorData_Pagina_${timestamp}.xlsx`);
+    }
+
+    // Función para exportar todos los datos
+    function exportAllToExcel() {
+        fetch('{{ route("sensor-data.data") }}')
+            .then(response => response.json())
+            .then(data => {
+                const formattedData = [['ID', 'Temperatura (°C)', 'Humedad Aire (%)', 'Humedad Suelo (%)', 'Fecha']];
+                
+                data.forEach(item => {
+                    formattedData.push([
+                        item.id,
+                       `${item.temperature} °C`, // Temperatura con unidad
+                        `${item.humidity} %`, // Humedad Aire con unidad
+                        `${item.soilMoisture} %`, // Humedad Suelo con unidad
+                        item.timestamp
+                    ]);
+                });
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(formattedData);
+                
+                ws['!cols'] = [
+                    { wch: 10 }, // ID
+                    { wch: 20 }, // Temperatura (°C)
+                    { wch: 20 }, // Humedad Aire (%)
+                    { wch: 20 }, // Humedad Suelo (%)
+                    { wch: 30 }  // Fecha
+                ];
+
+                XLSX.utils.book_append_sheet(wb, ws, "SensorData_Todo");
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                XLSX.writeFile(wb, `SensorData_Todo_${timestamp}.xlsx`);
+            })
+            .catch(error => console.error('Error al exportar todos los datos:', error));
+    }
+
     // Configuración al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
-        updateCharts(); // Carga inicial
-        updateInterval = setInterval(updateCharts, 5000); // Actualización cada 5 segundos (ajustable)
+        updateCharts();
+        updateInterval = setInterval(updateCharts, 5000);
 
-        // Mostrar/ocultar formulario
         const addDataBtn = document.getElementById('addDataBtn');
         const addDataForm = document.getElementById('addDataForm');
         addDataBtn.addEventListener('click', (e) => {
             e.preventDefault();
             addDataForm.style.display = addDataForm.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Eventos de exportación
+        const exportPageBtn = document.getElementById('exportPageExcelBtn');
+        const exportAllBtn = document.getElementById('exportAllExcelBtn');
+        
+        exportPageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportPageToExcel();
+        });
+
+        exportAllBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportAllToExcel();
         });
 
         // Controles adicionales
@@ -598,13 +684,12 @@
 
         refreshBtn.addEventListener('click', () => updateCharts());
 
-        // Fullscreen para gráficos
         const graphContainers = document.querySelectorAll('.graph-container');
         graphContainers.forEach(container => {
             container.addEventListener('mouseenter', () => container.classList.add('fullscreen'));
             container.addEventListener('mouseleave', () => container.classList.remove('fullscreen'));
         });
     });
-</script>
+    </script>
 </body>
 </html>
